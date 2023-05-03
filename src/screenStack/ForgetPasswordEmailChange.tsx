@@ -2,26 +2,54 @@ import React, { FC, useCallback, useEffect, useState } from "react";
 import { Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { CloseSvg } from "../../assets";
 import { regEmil } from "../Regex/Regex";
+import useToggle from "../Componentns/Hooks/useToggle";
+import ModalEditPassword from "../Componentns/Home/ModalEditPassword";
 
 const ForgetPasswordEmailChange: FC = () => {
   const [errorMessing, setErrorMessing] = useState<string | null>(null);
   const [email, setEmail] = useState<string>("");
+  const [counter, setCounter] = useState<number>(0);
+  const [counterClear, setCounterClear] = useState<null | boolean>(null);
+  // const [openModal, toggleModal, setOpenModal] = useToggle(false);
   const changeEmail = useCallback((text: string) => {
+    if (text === "") {
+      setCounterClear(false);
+    } else if (!regEmil.test(text)) {
+      setCounterClear(false);
+    } else {
+      setCounterClear(null);
+    }
     setEmail(text);
   }, [email]);
   const removeEmail = useCallback(() => {
     changeEmail("");
-    setErrorMessing('')
+    setErrorMessing(null);
   }, []);
-  const getCodeEmil = useCallback(()=>{
-     if(email === ''){
-        setErrorMessing('erorr')
-     }else  if(!regEmil.test(email)){
-        setErrorMessing('error messing')
-     }else {
-       setErrorMessing('')
-     }
-  },[email])
+  const getCodeEmil = useCallback(() => {
+    if (email === "") {
+      setErrorMessing("This field is required");
+    } else if (!regEmil.test(email)) {
+      setErrorMessing("The email is invalid");
+    } else {
+      if (counter === 0) {
+        setCounter(30);
+        setCounterClear(true);
+      }
+    }
+  }, [email, counter]);
+  useEffect(() => {
+    let numberClear = 30;
+    if (counterClear) {
+      var x = setInterval(() => {
+        setCounter((num) => num - 1);
+        numberClear--;
+        if (numberClear === 0) {
+          clearInterval(x);
+          setCounterClear(null);
+        }
+      }, 1000);
+    }
+  }, [counterClear]);
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.images_cont}>
@@ -38,15 +66,18 @@ const ForgetPasswordEmailChange: FC = () => {
             onChangeText={changeEmail}
           />
           {
-            email.length >= 1 &&
-            <TouchableOpacity
-              onPress={removeEmail}
-              style={styles.remove_value}>
-              <CloseSvg />
-            </TouchableOpacity>
-          }
+            counterClear === false && email.length >= 1 && (
+              <TouchableOpacity
+                onPress={removeEmail}
+                style={styles.remove_value}>
+                <CloseSvg />
+              </TouchableOpacity>
+            )}
         </View>
         {errorMessing !== null && <Text style={styles.error_messing}>{errorMessing}</Text>}
+        {counterClear && <Text style={{
+          color: "#000"
+        }}>Please to wait {counter} second</Text>}
         <TouchableOpacity
           style={styles.email_btn}
           onPress={getCodeEmil}
@@ -76,14 +107,14 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 24,
     paddingVertical: 45,
-    alignItems:'center'
+    alignItems: "center"
   },
-  title:{
-    color:'#000',
-    fontSize:16,
-    fontWeight:'500',
-    textAlign:'center',
-    lineHeight:40
+  title: {
+    color: "#000",
+    fontSize: 16,
+    fontWeight: "500",
+    textAlign: "center",
+    lineHeight: 40
   },
   input_items: {
     width: "100%",
@@ -103,21 +134,21 @@ const styles = StyleSheet.create({
     right: 10,
     top: 10
   },
-  email_btn:{
-    width:'70%',
-    paddingVertical:10,
-    backgroundColor:'#91C788',
-    marginTop:35,
-    alignItems:'center',
-    borderRadius:15
+  email_btn: {
+    width: "70%",
+    paddingVertical: 10,
+    backgroundColor: "#91C788",
+    marginTop: 35,
+    alignItems: "center",
+    borderRadius: 15
   },
-  text_btn_emil:{
-    color:'#fff',
-    fontSize:17,
-    fontWeight:'600'
+  text_btn_emil: {
+    color: "#fff",
+    fontSize: 17,
+    fontWeight: "600"
   },
-  error_messing:{
-    color:'red'
+  error_messing: {
+    color: "red"
   }
 });
 export default ForgetPasswordEmailChange;
